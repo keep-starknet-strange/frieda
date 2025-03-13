@@ -8,7 +8,7 @@ use crate::{
     field::get_primitive_root_of_unity, polynomial, Commitment, FriedaError, Result, SampleResult,
     M31,
 };
-use num_traits::identities::{One, Zero};
+use num_traits::identities::One;
 use sha2::{Digest, Sha256};
 
 /// The statistical security parameter
@@ -37,11 +37,11 @@ pub fn sample(commitment: &Commitment) -> Result<SampleResult> {
     // This would normally involve querying a data provider for the values and proofs at these indices
     // For demonstration purposes, we'll return a placeholder result
 
-    return Ok(SampleResult {
+    Ok(SampleResult {
         success: false,
         values: Vec::new(),
         indices,
-    });
+    })
 }
 
 /// Calculates the number of samples needed for a given statistical security

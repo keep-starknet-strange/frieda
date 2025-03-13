@@ -4,7 +4,6 @@
 //! including Merkle tree implementation, hashing, and serialization.
 
 use crate::{FriedaError, Result, M31};
-use num_traits::identities::{One, Zero};
 use sha2::{Digest, Sha256};
 
 /// Converts an M31 field element to bytes

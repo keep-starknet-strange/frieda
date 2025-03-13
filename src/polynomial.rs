@@ -214,8 +214,8 @@ pub fn lagrange_interpolation(evals: &[M31], domain: &[M31]) -> Result<Vec<M31>>
             // Scale by 1/(domain[i] - domain[j])
             let one: M31 = One::one();
             let scale = one / (domain[i] - domain[j]);
-            for k in 0..basis.len() {
-                basis[k] *= scale;
+            for elem in &mut basis {
+                *elem *= scale;
             }
         }
 

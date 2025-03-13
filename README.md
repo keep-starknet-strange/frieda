@@ -1,78 +1,83 @@
-# 🌠 FRIEDA
+# FRIEDA
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Rust-2021-orange.svg" alt="Rust 2021"/>
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"/>
-  <img src="https://img.shields.io/badge/Status-Experimental-yellow.svg" alt="Status: Experimental"/>
-</p>
+**FRI-based Erasure-coded Interactive Data Availability**
 
-<h3 align="center">FRI-based Erasure-coded Interactive Data Availability</h3>
+[![Rust 2021](https://img.shields.io/badge/Rust-2021-orange.svg)](https://www.rust-lang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Status: Experimental](https://img.shields.io/badge/Status-Experimental-yellow.svg)](https://github.com/AbdelStark/frieda)
 
-<p align="center">A blazing-fast, zero-knowledge data availability sampling library for blockchains and L2s.</p>
+A Rust implementation of data availability sampling using Fast Reed-Solomon Interactive Oracle Proofs (FRI) as described in the [FRIDA paper](https://eprint.iacr.org/2024/248).
 
----
+## Overview
 
-FRIEDA implements the ground-breaking [FRIDA paper](https://eprint.iacr.org/2024/248) data availability sampling scheme with **polylogarithmic overhead** and **no trusted setup**. It enables light clients to verify data availability without downloading the entire dataset, crucial for scalable blockchain systems.
+Data Availability (DA) is a critical property in blockchain scaling solutions. It ensures that sufficient information about state transitions is published, allowing network participants to reconstruct the full state if needed. Data Availability Sampling (DAS) allows resource-constrained clients to probabilistically verify data availability without downloading the entire dataset.
 
-## 🚀 Key Features
+FRIEDA implements the FRIDA scheme, which offers several theoretical improvements over previous approaches:
 
-- **Zero Knowledge & Zero Trust**: No trusted setup required, fully transparent
-- **Light Speed Verification**: Verify data availability by sampling just a tiny fraction
-- **Mathematical Guarantees**: Statistical security with adjustable parameters
-- **Blockchain Ready**: Integration-ready for L2s, rollups, and data availability committees
-- **Pure Rust Implementation**: Safe, efficient cryptography with no unsafe code
+- **Polylogarithmic overhead** for both prover and verifier
+- **No trusted setup requirement** (unlike polynomial commitment schemes based on pairings)
+- **Practical sampling efficiency** and tight security bounds
 
-## 💡 Why FRIEDA?
+## Technical Background
 
-Traditional data availability schemes face a trilemma:
+### Data Availability Problem
 
-1. ❌ **KZG-based**: Requires trusted setup, limited polynomial degree
-2. ❌ **Merkle-based**: Linear overhead for sampling
-3. ❌ **Tensor codes**: Limited to two-dimensional construction
+In decentralized systems, particularly Layer 2 scaling solutions like rollups, participants need assurance that transaction data has been published without downloading all data. Sampling-based approaches allow light clients to verify availability with high probability by requesting random fragments of the data.
 
-**FRIEDA solves all three problems** by leveraging Fast Reed-Solomon Interactive Oracle Proofs (FRI) to create an erasure code commitment with **polylogarithmic overhead** and **no trusted setup**.
+### The FRIDA Approach
 
-```
-                      ╭───────────────╮
-                      │   FRIEDA DA   │
-                      ╰───────────────╯
-                             │
-             ┌───────────────┴───────────────┐
-             │                               │
-    ╭───────────────╮               ╭───────────────╮
-    │   FRI Proofs   │               │  Reed-Solomon │
-    ╰───────────────╯               ╰───────────────╯
-```
+FRIDA establishes a connection between Data Availability Sampling and Interactive Oracle Proofs of Proximity (IOPPs). It demonstrates that any IOPP meeting a specific consistency criterion can be transformed into an erasure code commitment scheme suitable for data availability sampling.
 
-## 🔧 Quick Start
+The paper shows that FRI (Fast Reed-Solomon Interactive Oracle Proofs) satisfies these properties, leading to an efficient DAS scheme with:
+
+1. **Reed-Solomon Encoding**: Data is encoded with an expansion factor to ensure erasure resilience
+2. **FRI Protocol**: Provides low-degree proximity testing with logarithmic proof size
+3. **Merkle Commitments**: Authenticates erasure-encoded data efficiently
+
+## Implementation
+
+FRIEDA is structured with the following components:
+
+- **Field Arithmetic (`field.rs`)**: Operations over the M31 prime field (2³¹ - 1)
+- **Polynomial Operations (`polynomial.rs`)**: FFT, IFFT, and Reed-Solomon encoding
+- **FRI Protocol (`fri.rs`)**: Low-degree testing mechanisms
+- **Data Availability Layer (`da.rs`)**: High-level data commitment and verification
+- **Sampling (`sampling.rs`)**: Probability-based sampling strategy
+- **Utilities (`utils.rs`)**: Merkle tree implementation and other helpers
+
+### API Usage
+
+The library provides a straightforward API for the core operations:
 
 ```rust
 use frieda::api::{commit, sample, verify};
 
-// The data provider commits to their data
-let commitment = commit(&my_data)?;
+// Data provider commits to the data
+let commitment = commit(&data)?;
 
-// Light client samples the data to verify availability
-let sample_queries = sample(&commitment)?;
+// Light client samples the committed data
+let sample_result = sample(&commitment)?;
 
-// Data provider responds with proofs
-let proofs = generate_proof_for_queries(&my_data, &sample_queries)?;
+// Data provider generates proof for the requested samples
+// (In a real implementation, this would use the original data)
+let proof = generate_proof(&commitment, &sample_result)?;
 
-// Light client verifies without downloading everything
-let is_available = verify(&commitment, &proofs)?;
+// Light client verifies the samples
+let is_available = verify(&commitment, &proof)?;
 ```
 
-## 📚 Components
+## Comparative Analysis
 
-FRIEDA is built with clean, modular architecture:
+The FRIDA scheme has distinct advantages over other approaches:
 
-- **🧮 Field Arithmetic**: M31 prime field (2³¹ - 1) via [stwo-prover](https://github.com/starkware-libs/stwo)
-- **📊 Polynomial Ops**: FFT, IFFT, interpolation for efficient encoding
-- **🔍 FRI Protocol**: Core low-degree testing implementation
-- **🔐 Cryptographic Primitives**: Merkle trees, hashing, and verification
-- **🌐 Sampling Strategy**: Optimized data availability sampling
+| Scheme | Overhead | Trusted Setup | Limitations |
+|--------|----------|---------------|-------------|
+| KZG-based | O(log n) | Required | Limited polynomial degree, setup complexity |
+| Merkle-based | O(n) | Not required | Linear sampling overhead |
+| Tensor codes | O(√n log n) | Not required | Limited to two-dimensional construction |
+| FRIDA (FRI-based) | O(log² n) | Not required | More complex protocol |
 
-## 💻 Running the Demo
+## Running the Code
 
 ```bash
 git clone https://github.com/AbdelStark/frieda.git
@@ -80,18 +85,37 @@ cd frieda
 cargo run --release
 ```
 
-## 📋 Background
+## Repository Structure
 
-FRIDA (the research paper) establishes a connection between Data Availability Sampling and Interactive Oracle Proofs of Proximity, showing that any IOPP with a consistency criterion can be transformed into an erasure code commitment scheme with strong guarantees.
+```
+frieda/
+├── src/
+│   ├── field.rs       # M31 field arithmetic
+│   ├── polynomial.rs  # FFT and polynomial operations
+│   ├── fri.rs         # FRI protocol implementation
+│   ├── da.rs          # Data availability layer
+│   ├── sampling.rs    # Sampling strategies
+│   ├── utils.rs       # Merkle trees and utilities
+│   ├── lib.rs         # Core library definitions
+│   └── main.rs        # Demo application
+└── README.md
+```
 
-This implementation transforms that theory into practical, usable code that can be integrated into blockchain systems.
+## Limitations
 
-## 📜 License
+This implementation is primarily for educational and research purposes. Several limitations should be noted:
 
-Licensed under MIT - Copyright (c) 2025 [AbdelStark](https://github.com/AbdelStark)
+1. The implementation focuses on the core concepts rather than optimizations
+2. The proof generation is partially implemented
+3. Security audits have not been performed
+4. The library should not be used in production without further development
 
-## 🔗 References
+## License
 
-- [FRIDA: Data Availability Sampling from FRI](https://eprint.iacr.org/2024/248)
-- [Foundations of Data Availability Sampling](https://eprint.iacr.org/2023/1079)
-- [Fast Reed-Solomon Interactive Oracle Proofs](https://eccc.weizmann.ac.il/report/2017/134/)
+MIT License - Copyright (c) 2024 [AbdelStark](https://github.com/AbdelStark)
+
+## References
+
+1. Hall-Andersen, M., Simkin, M., & Wagner, B. (2024). "FRIDA: Data Availability Sampling from FRI." *IACR Cryptology ePrint Archive*, 2024/248.
+2. Ben-Sasson, E., Bentov, I., Horesh, Y., & Riabzev, M. (2018). "Fast Reed-Solomon Interactive Oracle Proofs of Proximity." *Electronic Colloquium on Computational Complexity*, Report No. 134.
+3. Hall-Andersen, M., Simkin, M., & Wagner, B. (2023). "Foundations of Data Availability Sampling." *IACR Cryptology ePrint Archive*, 2023/1079.

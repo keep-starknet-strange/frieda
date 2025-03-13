@@ -8,7 +8,6 @@ use crate::{
     fri::{FriProver, FriVerifier},
     polynomial, Commitment, CommitmentMetadata, FriProof, FriedaError, Result, M31,
 };
-use num_traits::identities::{One, Zero};
 
 // Default parameters for the FRI protocol
 const DEFAULT_EXPANSION_FACTOR: usize = 4;
@@ -54,6 +53,7 @@ fn bytes_to_field_elements(data: &[u8]) -> Vec<M31> {
 /// # Returns
 ///
 /// A vector of raw data bytes
+#[allow(dead_code)]
 fn field_elements_to_bytes(elements: &[M31]) -> Vec<u8> {
     let mut bytes = Vec::new();
 
@@ -124,7 +124,7 @@ pub fn commit(data: &[u8]) -> Result<Commitment> {
 /// # Returns
 ///
 /// A FRI proof
-pub fn generate_proof(commitment: &Commitment) -> Result<FriProof> {
+pub fn generate_proof(_commitment: &Commitment) -> Result<FriProof> {
     // Initialize FRI prover with the same parameters as during commitment
     // This is commented out for now since we don't use it yet
     // let prover = FriProver::new(
@@ -141,9 +141,9 @@ pub fn generate_proof(commitment: &Commitment) -> Result<FriProof> {
     // For the purpose of this example, we'll generate a dummy proof
     // In a real implementation, the original data would be stored or reconstructed
 
-    return Err(FriedaError::InvalidInput(
+    Err(FriedaError::InvalidInput(
         "Cannot generate proof without original data. Store the data in a database or reconstruct it.".to_string()
-    ));
+    ))
 }
 
 /// Verifies a FRI proof

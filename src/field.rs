@@ -4,7 +4,7 @@
 //! It re-exports functionality from the stwo crate's M31 implementation and adds
 //! some additional utilities specific to FRIEDA.
 
-use num_traits::identities::{One, Zero};
+use num_traits::identities::One;
 use stwo_prover::core::fields::m31::M31;
 use stwo_prover::core::fields::FieldExpOps;
 
