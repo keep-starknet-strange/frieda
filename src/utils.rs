@@ -291,6 +291,7 @@ pub fn unbatch_values(batched: &[Vec<M31>]) -> Vec<M31> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_traits::Zero;
 
     #[test]
     fn test_m31_conversion() {
