@@ -1,5 +1,5 @@
 //! # FRIEDA
-//! 
+//!
 //! FRIEDA (FRI-based Data Availability Sampling) is a Rust implementation
 //! of the FRIDA paper, which provides an efficient data availability sampling scheme
 //! based on the FRI (Fast Reed-Solomon Interactive Oracle Proofs) protocol.
@@ -16,10 +16,10 @@ use thiserror::Error;
 pub use stwo_prover::core::fields::m31::M31;
 
 // Define library modules
-pub mod field;
-pub mod polynomial;
-pub mod fri;
 pub mod da;
+pub mod field;
+pub mod fri;
+pub mod polynomial;
 pub mod sampling;
 pub mod utils;
 
@@ -29,19 +29,19 @@ pub enum FriedaError {
     /// Input validation error
     #[error("Invalid input: {0}")]
     InvalidInput(String),
-    
+
     /// Verification error
     #[error("Verification failed: {0}")]
     VerificationFailed(String),
-    
+
     /// Encoding error
     #[error("Encoding error: {0}")]
     EncodingError(String),
-    
+
     /// Decoding error
     #[error("Decoding error: {0}")]
     DecodingError(String),
-    
+
     /// Merkle tree error
     #[error("Merkle tree error: {0}")]
     MerkleTreeError(String),
@@ -135,58 +135,62 @@ mod tests {
     #[test]
     fn test_basic_workflow() {
         // Create some test data
-        let data = b"Hello, world! This is a test of the FRI-based data availability sampling scheme.";
-        
+        let data =
+            b"Hello, world! This is a test of the FRI-based data availability sampling scheme.";
+
         // Commit to the data
         let commitment = api::commit(data).unwrap();
-        
+
         // Sample the commitment
         let sample_result = api::sample(&commitment).unwrap();
-        
+
         // Verify that we have sample indices
         assert!(!sample_result.indices.is_empty());
-        
+
         // Note: In a complete implementation, we would:
         // 1. Generate a proof with api::generate_proof()
         // 2. Verify the proof with api::verify()
         // 3. Reconstruct the data from samples
-        
+
         // For now, we just check that the commit and sample functions work
         println!("Commitment: {:?}", commitment);
         println!("Sample indices: {:?}", sample_result.indices);
     }
-    
+
     #[test]
     fn test_end_to_end() {
         // This test demonstrates the intended workflow, even though some parts
         // are not fully implemented yet
-        
+
         // Step 1: Data provider has some data
         let original_data = b"This is the original data that needs to be made available.";
-        
+
         // Step 2: Data provider commits to the data
         let commitment = api::commit(original_data).unwrap();
         println!("Commitment created with root: {:?}", commitment.root);
-        
+
         // Step 3: Data provider publishes the commitment
         // (In a real system, this would be published to a blockchain or broadcast)
-        
+
         // Step 4: Light client wants to verify data availability
         let sample_result = api::sample(&commitment).unwrap();
-        println!("Light client sampled {} indices", sample_result.indices.len());
-        
+        println!(
+            "Light client sampled {} indices",
+            sample_result.indices.len()
+        );
+
         // Step 5: Light client requests samples from data provider
         // (In a real system, the light client would query a network of providers)
-        
+
         // Step 6: Data provider generates proofs for the requested samples
         // Note: generate_proof is not fully implemented, so this would fail
         // let proof = api::generate_proof(&commitment).unwrap();
-        
+
         // Step 7: Light client verifies the proofs
         // Note: verify is not fully implemented with real proofs
         // let verification_result = api::verify(&commitment, &proof).unwrap();
         // assert!(verification_result);
-        
+
         // Step 8: Light client concludes that data is available
         // In this demo, we just check that sampling works
         assert!(!sample_result.indices.is_empty());

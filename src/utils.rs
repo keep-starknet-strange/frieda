@@ -3,9 +3,9 @@
 //! This module provides utility functions for the FRIEDA library,
 //! including Merkle tree implementation, hashing, and serialization.
 
-use sha2::{Digest, Sha256};
 use crate::{FriedaError, Result, M31};
 use num_traits::identities::{One, Zero};
+use sha2::{Digest, Sha256};
 
 /// Converts an M31 field element to bytes
 ///
@@ -91,17 +91,19 @@ impl MerkleTree {
     /// A new Merkle tree
     pub fn new(leaves: &[[u8; 32]]) -> Self {
         if leaves.is_empty() {
-            return Self { levels: vec![vec![[0; 32]]] };
+            return Self {
+                levels: vec![vec![[0; 32]]],
+            };
         }
-        
+
         let mut levels = Vec::new();
         levels.push(leaves.to_vec());
-        
+
         let mut current_level = 0;
         while levels[current_level].len() > 1 {
             let level_below = &levels[current_level];
             let mut current_level_hashes = Vec::new();
-            
+
             // Iterate over pairs of nodes in the level below
             for i in (0..level_below.len()).step_by(2) {
                 if i + 1 < level_below.len() {
@@ -114,14 +116,14 @@ impl MerkleTree {
                     current_level_hashes.push(hash);
                 }
             }
-            
+
             levels.push(current_level_hashes);
             current_level += 1;
         }
-        
+
         Self { levels }
     }
-    
+
     /// Gets the root of the Merkle tree
     ///
     /// # Returns
@@ -130,7 +132,7 @@ impl MerkleTree {
     pub fn root(&self) -> [u8; 32] {
         self.levels.last().unwrap()[0]
     }
-    
+
     /// Gets the authentication path for a leaf in the Merkle tree
     ///
     /// # Arguments
@@ -142,14 +144,15 @@ impl MerkleTree {
     /// The authentication path (sibling hashes) from the leaf to the root
     pub fn get_auth_path(&self, leaf_index: usize) -> Result<Vec<[u8; 32]>> {
         if leaf_index >= self.levels[0].len() {
-            return Err(FriedaError::InvalidInput(
-                format!("Leaf index {} is out of bounds", leaf_index)
-            ));
+            return Err(FriedaError::InvalidInput(format!(
+                "Leaf index {} is out of bounds",
+                leaf_index
+            )));
         }
-        
+
         let mut path = Vec::new();
         let mut index = leaf_index;
-        
+
         for level in 0..self.levels.len() - 1 {
             let sibling_index = if index % 2 == 0 { index + 1 } else { index - 1 };
             if sibling_index < self.levels[level].len() {
@@ -158,14 +161,14 @@ impl MerkleTree {
                 // If there's no sibling, use the node itself
                 path.push(self.levels[level][index]);
             }
-            
+
             // Move to the parent's index in the next level
             index /= 2;
         }
-        
+
         Ok(path)
     }
-    
+
     /// Verifies that a leaf value is included in the Merkle tree
     ///
     /// # Arguments
@@ -186,7 +189,7 @@ impl MerkleTree {
     ) -> bool {
         let mut current_hash = *leaf;
         let mut index = leaf_index;
-        
+
         for sibling in auth_path {
             // Determine whether the current node is a left or right child
             if index % 2 == 0 {
@@ -196,11 +199,11 @@ impl MerkleTree {
                 // Current node is a right child, so sibling is on the left
                 current_hash = hash_pair(sibling, &current_hash);
             }
-            
+
             // Move to the parent's index
             index /= 2;
         }
-        
+
         current_hash == *root
     }
 }
@@ -252,7 +255,7 @@ pub fn batch_values(values: &[M31], batch_size: usize) -> Vec<Vec<M31>> {
     if batch_size == 1 {
         return values.iter().map(|&v| vec![v]).collect();
     }
-    
+
     let mut batched = Vec::new();
     for i in (0..values.len()).step_by(batch_size) {
         let mut batch = Vec::new();
@@ -265,7 +268,7 @@ pub fn batch_values(values: &[M31], batch_size: usize) -> Vec<Vec<M31>> {
         }
         batched.push(batch);
     }
-    
+
     batched
 }
 
@@ -308,19 +311,14 @@ mod tests {
 
     #[test]
     fn test_merkle_tree() {
-        let values = vec![
-            M31::from(1),
-            M31::from(2),
-            M31::from(3),
-            M31::from(4),
-        ];
-        
+        let values = vec![M31::from(1), M31::from(2), M31::from(3), M31::from(4)];
+
         let leaves = create_leaf_nodes(&values);
         let tree = MerkleTree::new(&leaves);
-        
+
         // Get the authentication path for leaf 2
         let auth_path = tree.get_auth_path(2).unwrap();
-        
+
         // Verify that leaf 2 is included in the tree
         assert!(MerkleTree::verify_inclusion(
             &leaves[2],
@@ -339,16 +337,16 @@ mod tests {
             M31::from(4),
             M31::from(5),
         ];
-        
+
         let batched = batch_values(&values, 2);
-        
+
         assert_eq!(batched.len(), 3);
         assert_eq!(batched[0], vec![M31::from(1), M31::from(2)]);
         assert_eq!(batched[1], vec![M31::from(3), M31::from(4)]);
         assert_eq!(batched[2], vec![M31::from(5), M31::zero()]);
-        
+
         let unbatched = unbatch_values(&batched);
-        
+
         assert_eq!(unbatched.len(), 6);
         assert_eq!(unbatched[0], M31::from(1));
         assert_eq!(unbatched[1], M31::from(2));

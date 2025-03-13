@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "FRI-based Data Availability sampling library based on the FRIDA paper"
 license = "MIT"
-repository = "https://github.com/yourusername/frieda"
+repository = "https://github.com/AbdelStark/frieda"
 keywords = ["cryptography", "data-availability", "fri", "erasure-coding"]
 categories = ["cryptography", "algorithms", "no-std"]
 

@@ -6,8 +6,7 @@
 
 use crate::{
     fri::{FriProver, FriVerifier},
-    polynomial,
-    Commitment, CommitmentMetadata, FriProof, FriedaError, Result, M31
+    polynomial, Commitment, CommitmentMetadata, FriProof, FriedaError, Result, M31,
 };
 use num_traits::identities::{One, Zero};
 
@@ -30,19 +29,19 @@ const DEFAULT_BASE_DIMENSION: usize = 16;
 /// A vector of field elements
 fn bytes_to_field_elements(data: &[u8]) -> Vec<M31> {
     let mut elements = Vec::new();
-    
+
     // Process 4 bytes at a time to create field elements
     for chunk in data.chunks(4) {
         let mut bytes = [0u8; 4];
         for (i, &byte) in chunk.iter().enumerate() {
             bytes[i] = byte;
         }
-        
+
         // Treat the bytes as a u32 and convert to a field element
         let value = u32::from_le_bytes(bytes);
         elements.push(M31::from(value));
     }
-    
+
     elements
 }
 
@@ -57,7 +56,7 @@ fn bytes_to_field_elements(data: &[u8]) -> Vec<M31> {
 /// A vector of raw data bytes
 fn field_elements_to_bytes(elements: &[M31]) -> Vec<u8> {
     let mut bytes = Vec::new();
-    
+
     for element in elements {
         // In stwo-prover, M31 doesn't have direct conversion to u32
         // Parse from string representation
@@ -65,7 +64,7 @@ fn field_elements_to_bytes(elements: &[M31]) -> Vec<u8> {
         let element_bytes = value.to_le_bytes();
         bytes.extend_from_slice(&element_bytes);
     }
-    
+
     bytes
 }
 
@@ -81,10 +80,10 @@ fn field_elements_to_bytes(elements: &[M31]) -> Vec<u8> {
 pub fn commit(data: &[u8]) -> Result<Commitment> {
     // Convert the data to field elements
     let elements = bytes_to_field_elements(data);
-    
+
     // Determine the domain size based on the number of elements
     let domain_size = calculate_domain_size(elements.len(), DEFAULT_EXPANSION_FACTOR);
-    
+
     // Create a FRI prover with the default parameters
     let prover = FriProver::new(
         domain_size,
@@ -95,13 +94,13 @@ pub fn commit(data: &[u8]) -> Result<Commitment> {
         DEFAULT_FAN_IN,
         DEFAULT_BASE_DIMENSION,
     );
-    
+
     // Reed-Solomon encode the data
     let encoded = polynomial::reed_solomon_encode(&elements, DEFAULT_EXPANSION_FACTOR)?;
-    
+
     // Commit to the encoded data
     let (root, _) = prover.commit(&encoded)?;
-    
+
     // Create and return the commitment
     let commitment = Commitment {
         root,
@@ -112,7 +111,7 @@ pub fn commit(data: &[u8]) -> Result<Commitment> {
             field_size: DEFAULT_FIELD_SIZE,
         },
     };
-    
+
     Ok(commitment)
 }
 
@@ -137,11 +136,11 @@ pub fn generate_proof(commitment: &Commitment) -> Result<FriProof> {
     //     DEFAULT_FAN_IN,
     //     DEFAULT_BASE_DIMENSION,
     // );
-    
+
     // This would normally require access to the original data
     // For the purpose of this example, we'll generate a dummy proof
     // In a real implementation, the original data would be stored or reconstructed
-    
+
     return Err(FriedaError::InvalidInput(
         "Cannot generate proof without original data. Store the data in a database or reconstruct it.".to_string()
     ));
@@ -167,7 +166,7 @@ pub fn verify(commitment: &Commitment, proof: &FriProof) -> Result<bool> {
         DEFAULT_FAN_IN,
         DEFAULT_BASE_DIMENSION,
     );
-    
+
     // Verify the proof
     verifier.verify(&commitment.root, proof)
 }
@@ -204,20 +203,24 @@ pub fn reconstruct(commitment: &Commitment, proof: &FriProof) -> Result<Vec<u8>>
     // 2. Collecting enough samples from the proof
     // 3. Interpolating the original polynomial
     // 4. Decoding the Reed-Solomon code
-    
+
     if !verify(commitment, proof)? {
-        return Err(FriedaError::VerificationFailed("Proof verification failed".to_string()));
+        return Err(FriedaError::VerificationFailed(
+            "Proof verification failed".to_string(),
+        ));
     }
-    
+
     // Extract the samples from the proof
     let mut samples = Vec::new();
     for query_info in &proof.query_info {
         samples.push((query_info.index, query_info.value));
     }
-    
+
     // We'd need enough samples to reconstruct the original data
     // For now, return an error since this is not fully implemented
-    Err(FriedaError::DecodingError("Data reconstruction not fully implemented".to_string()))
+    Err(FriedaError::DecodingError(
+        "Data reconstruction not fully implemented".to_string(),
+    ))
 }
 
 #[cfg(test)]
@@ -228,11 +231,11 @@ mod tests {
     fn test_bytes_conversion() {
         // Test data
         let data = b"Hello, world!";
-        
+
         // Convert to field elements and back
         let elements = bytes_to_field_elements(data);
         let recovered = field_elements_to_bytes(&elements);
-        
+
         // Make sure the recovered data matches the original (up to padding)
         assert_eq!(&recovered[..data.len()], data);
     }

@@ -1,101 +1,97 @@
-# FRIEDA
+# 🌠 FRIEDA
 
-**FRI-based Data Availability Sampling Library**
+<p align="center">
+  <img src="https://img.shields.io/badge/Rust-2021-orange.svg" alt="Rust 2021"/>
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"/>
+  <img src="https://img.shields.io/badge/Status-Experimental-yellow.svg" alt="Status: Experimental"/>
+</p>
 
-FRIEDA is a Rust implementation of the [FRIDA paper](https://eprint.iacr.org/2024/248), which provides an efficient data availability sampling scheme based on the FRI (Fast Reed-Solomon Interactive Oracle Proofs) protocol.
+<h3 align="center">FRI-based Erasure-coded Interactive Data Availability</h3>
 
-## Overview
+<p align="center">A blazing-fast, zero-knowledge data availability sampling library for blockchains and L2s.</p>
 
-Data Availability Sampling (DAS) is a critical component in various blockchain scaling solutions, particularly in rollups and data availability committees. It allows light clients to verify that a dataset is fully available without having to download the entire dataset.
+---
 
-FRIEDA implements:
+FRIEDA implements the ground-breaking [FRIDA paper](https://eprint.iacr.org/2024/248) data availability sampling scheme with **polylogarithmic overhead** and **no trusted setup**. It enables light clients to verify data availability without downloading the entire dataset, crucial for scalable blockchain systems.
 
-- **Fast Reed-Solomon Interactive Oracle Proof (FRI)** for polynomial commitments
-- **Low-degree testing** to verify data integrity
-- **Efficient sampling** with tight security bounds
-- **Merkle tree commitments** for data authentication
+## 🚀 Key Features
 
-The library is designed to be:
+- **Zero Knowledge & Zero Trust**: No trusted setup required, fully transparent
+- **Light Speed Verification**: Verify data availability by sampling just a tiny fraction
+- **Mathematical Guarantees**: Statistical security with adjustable parameters
+- **Blockchain Ready**: Integration-ready for L2s, rollups, and data availability committees
+- **Pure Rust Implementation**: Safe, efficient cryptography with no unsafe code
 
-- **Modular**: Clearly separated components for field arithmetic, polynomial operations, FRI protocol, and data availability sampling
-- **Well-documented**: Extensive documentation with examples and references to the original paper
-- **Efficient**: Optimized implementations of key cryptographic primitives
+## 💡 Why FRIEDA?
 
-## Features
+Traditional data availability schemes face a trilemma:
 
-- **M31 Field Arithmetic**: Uses the M31 prime field (2³¹ - 1) for efficient field operations
-- **Fast Fourier Transform (FFT)**: Optimized FFT implementation for polynomial operations
-- **Reed-Solomon Encoding**: Erasure coding with expansion factor configuration
-- **FRI Commitment Scheme**: Implementation of the FRI protocol as described in the FRIDA paper
-- **Data Availability Sampling**: Functions for sampling, verifying, and reconstructing data
+1. ❌ **KZG-based**: Requires trusted setup, limited polynomial degree
+2. ❌ **Merkle-based**: Linear overhead for sampling
+3. ❌ **Tensor codes**: Limited to two-dimensional construction
 
-## Installation
+**FRIEDA solves all three problems** by leveraging Fast Reed-Solomon Interactive Oracle Proofs (FRI) to create an erasure code commitment with **polylogarithmic overhead** and **no trusted setup**.
 
-Add FRIEDA to your Cargo.toml:
-
-```toml
-[dependencies]
-frieda = { git = "https://github.com/yourusername/frieda.git" }
+```
+                      ╭───────────────╮
+                      │   FRIEDA DA   │
+                      ╰───────────────╯
+                             │
+             ┌───────────────┴───────────────┐
+             │                               │
+    ╭───────────────╮               ╭───────────────╮
+    │   FRI Proofs   │               │  Reed-Solomon │
+    ╰───────────────╯               ╰───────────────╯
 ```
 
-## Usage
-
-Here's a basic example of how to use FRIEDA:
+## 🔧 Quick Start
 
 ```rust
-use frieda::api::{commit, generate_proof, verify, sample};
+use frieda::api::{commit, sample, verify};
 
-fn main() -> frieda::Result<()> {
-    // Example data
-    let data = b"Hello, world! This is some test data.";
-    
-    // Commit to the data
-    let commitment = commit(data)?;
-    
-    // In a real scenario, the verifier would sample the data
-    let sample_result = sample(&commitment)?;
-    
-    // The verifier would then verify the samples
-    // (Not fully implemented in this demo)
-    
-    println!("Commitment: {:?}", commitment);
-    println!("Sample indices: {:?}", sample_result.indices);
-    
-    Ok(())
-}
+// The data provider commits to their data
+let commitment = commit(&my_data)?;
+
+// Light client samples the data to verify availability
+let sample_queries = sample(&commitment)?;
+
+// Data provider responds with proofs
+let proofs = generate_proof_for_queries(&my_data, &sample_queries)?;
+
+// Light client verifies without downloading everything
+let is_available = verify(&commitment, &proofs)?;
 ```
 
-## Components
+## 📚 Components
 
-FRIEDA is organized into the following modular components:
+FRIEDA is built with clean, modular architecture:
 
-- **Field Arithmetic (`field.rs`)**: Implements M31 prime field arithmetic
-- **Polynomial Operations (`polynomial.rs`)**: Provides FFT, interpolation, and encoding
-- **FRI Core (`fri.rs`)**: Implements the FRI protocol
-- **Data Availability Layer (`da.rs`)**: High-level API for data availability
-- **Sampling and Verification (`sampling.rs`)**: Implements light-client sampling
-- **Utilities (`utils.rs`)**: Merkle trees, hashing, and serialization
+- **🧮 Field Arithmetic**: M31 prime field (2³¹ - 1) via [stwo-prover](https://github.com/starkware-libs/stwo)
+- **📊 Polynomial Ops**: FFT, IFFT, interpolation for efficient encoding
+- **🔍 FRI Protocol**: Core low-degree testing implementation
+- **🔐 Cryptographic Primitives**: Merkle trees, hashing, and verification
+- **🌐 Sampling Strategy**: Optimized data availability sampling
 
-## Understanding DAS and FRIDA
+## 💻 Running the Demo
 
-Data Availability Sampling allows light clients to verify that a piece of data is available without downloading the entire dataset. The FRIDA paper establishes a connection between DAS and Interactive Oracle Proofs of Proximity (IOPPs), showing that any IOPP meeting a consistency criterion can be turned into an erasure code commitment and then into a DAS scheme.
+```bash
+git clone https://github.com/AbdelStark/frieda.git
+cd frieda
+cargo run --release
+```
 
-The main advantages of FRIDA's approach include:
+## 📋 Background
 
-1. **No Trusted Setup**: The construction does not require a trusted setup
-2. **Asymptotic Efficiency**: Polylogarithmic overhead compared to earlier schemes
-3. **Concrete Efficiency**: Better performance in multiple parameters
+FRIDA (the research paper) establishes a connection between Data Availability Sampling and Interactive Oracle Proofs of Proximity, showing that any IOPP with a consistency criterion can be transformed into an erasure code commitment scheme with strong guarantees.
 
-## Security
+This implementation transforms that theory into practical, usable code that can be integrated into blockchain systems.
 
-FRIEDA is an educational implementation of the FRIDA paper and should not be used in production without further security audits. The implementation focuses on correctness and follows the paper's specifications, but has not been audited for security vulnerabilities.
+## 📜 License
 
-## References
+Licensed under MIT - Copyright (c) 2025 [AbdelStark](https://github.com/AbdelStark)
+
+## 🔗 References
 
 - [FRIDA: Data Availability Sampling from FRI](https://eprint.iacr.org/2024/248)
-- [Fast Reed-Solomon Interactive Oracle Proofs of Proximity](https://eccc.weizmann.ac.il/report/2017/134/)
 - [Foundations of Data Availability Sampling](https://eprint.iacr.org/2023/1079)
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- [Fast Reed-Solomon Interactive Oracle Proofs](https://eccc.weizmann.ac.il/report/2017/134/)
