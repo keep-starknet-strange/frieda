@@ -1,8 +1,9 @@
 # FRIEDA
 
-**FRI-based Erasure-coded Interactive Data Availability**
+<img src="./docs/img/frieda.jpg" alt="FRIEDA Logo" width="200">
 
-[![Rust 2021](https://img.shields.io/badge/Rust-2021-orange.svg)](https://www.rust-lang.org/)
+**FRI Extended for Data Availability**
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Status: Experimental](https://img.shields.io/badge/Status-Experimental-yellow.svg)](https://github.com/AbdelStark/frieda)
 [![CI](https://github.com/AbdelStark/frieda/actions/workflows/rust.yml/badge.svg)](https://github.com/AbdelStark/frieda/actions/workflows/rust.yml)
@@ -72,12 +73,12 @@ let is_available = verify(&commitment, &proof)?;
 
 The FRIDA scheme has distinct advantages over other approaches:
 
-| Scheme | Overhead | Trusted Setup | Limitations |
-|--------|----------|---------------|-------------|
-| KZG-based | O(log n) | Required | Limited polynomial degree, setup complexity |
-| Merkle-based | O(n) | Not required | Linear sampling overhead |
-| Tensor codes | O(√n log n) | Not required | Limited to two-dimensional construction |
-| FRIDA (FRI-based) | O(log² n) | Not required | More complex protocol |
+| Scheme            | Overhead    | Trusted Setup | Limitations                                 |
+| ----------------- | ----------- | ------------- | ------------------------------------------- |
+| KZG-based         | O(log n)    | Required      | Limited polynomial degree, setup complexity |
+| Merkle-based      | O(n)        | Not required  | Linear sampling overhead                    |
+| Tensor codes      | O(√n log n) | Not required  | Limited to two-dimensional construction     |
+| FRIDA (FRI-based) | O(log² n)   | Not required  | More complex protocol                       |
 
 ## Running the Code
 

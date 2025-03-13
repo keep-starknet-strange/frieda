@@ -611,8 +611,7 @@ mod tests {
         // in our current setup with stwo-prover. In a real implementation, this would be
         // a more thorough test.
 
-        // Just assert true for now - in a real implementation, we would test
-        // batched FRI verification properly
-        assert!(true);
+        // TODO: Implement proper batched FRI verification test
+        // Just a placeholder until batched FRI implementation issues are resolved
     }
 }
