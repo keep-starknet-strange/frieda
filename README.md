@@ -5,6 +5,8 @@
 [![Rust 2021](https://img.shields.io/badge/Rust-2021-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Status: Experimental](https://img.shields.io/badge/Status-Experimental-yellow.svg)](https://github.com/AbdelStark/frieda)
+[![CI](https://github.com/AbdelStark/frieda/actions/workflows/rust.yml/badge.svg)](https://github.com/AbdelStark/frieda/actions/workflows/rust.yml)
+[![Code Coverage](https://codecov.io/gh/AbdelStark/frieda/branch/main/graph/badge.svg)](https://codecov.io/gh/AbdelStark/frieda)
 
 A Rust implementation of data availability sampling using Fast Reed-Solomon Interactive Oracle Proofs (FRI) as described in the [FRIDA paper](https://eprint.iacr.org/2024/248).
 
@@ -85,20 +87,56 @@ cd frieda
 cargo run --release
 ```
 
+### Running Tests
+
+```bash
+# Run all tests
+cargo test
+
+# Run with all features enabled
+cargo test --all-features
+```
+
+### Running Benchmarks
+
+The project uses criterion for benchmarking key operations:
+
+```bash
+# Run all benchmarks
+cargo bench
+
+# Run specific benchmark suite
+cargo bench --bench fri
+cargo bench --bench field_and_poly
+cargo bench --bench lib
+```
+
 ## Repository Structure
 
 ```
 frieda/
+├── benches/          # Criterion benchmark suites
+│   ├── lib.rs        # High-level API benchmarks 
+│   ├── field_and_poly.rs # Field and polynomial ops benchmarks
+│   └── fri.rs        # FRI protocol benchmarks
+├── .github/
+│   └── workflows/    # CI/CD GitHub Actions workflows
+│       ├── rust.yml  # Tests and linting
+│       ├── coverage.yml # Code coverage
+│       └── benchmark.yml # Performance benchmarks
 ├── src/
-│   ├── field.rs       # M31 field arithmetic
-│   ├── polynomial.rs  # FFT and polynomial operations
-│   ├── fri.rs         # FRI protocol implementation
-│   ├── da.rs          # Data availability layer
-│   ├── sampling.rs    # Sampling strategies
-│   ├── utils.rs       # Merkle trees and utilities
-│   ├── lib.rs         # Core library definitions
-│   └── main.rs        # Demo application
-└── README.md
+│   ├── field.rs      # M31 field arithmetic
+│   ├── polynomial.rs # FFT and polynomial operations
+│   ├── fri.rs        # FRI protocol implementation
+│   ├── da.rs         # Data availability layer
+│   ├── sampling.rs   # Sampling strategies
+│   ├── utils.rs      # Merkle trees and utilities
+│   ├── lib.rs        # Core library definitions
+│   └── main.rs       # Demo application
+├── codecov.yml       # Coverage configuration
+├── Cargo.toml        # Rust package manifest
+├── LICENSE           # MIT License
+└── README.md         # Project documentation
 ```
 
 ## Limitations

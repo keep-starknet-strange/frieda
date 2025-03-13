@@ -18,7 +18,19 @@ num-traits = "0.2"
 
 [dev-dependencies]
 rand = "0.8"
-criterion = "0.5"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "lib"
+harness = false
+
+[[bench]]
+name = "field_and_poly"
+harness = false
+
+[[bench]]
+name = "fri"
+harness = false
 
 [features]
 default = ["std"]
