@@ -1,0 +1,25 @@
+[package]
+name = "frieda"
+version = "0.1.0"
+edition = "2021"
+description = "FRI-based Data Availability sampling library based on the FRIDA paper"
+license = "MIT"
+repository = "https://github.com/yourusername/frieda"
+keywords = ["cryptography", "data-availability", "fri", "erasure-coding"]
+categories = ["cryptography", "algorithms", "no-std"]
+
+[dependencies]
+stwo-prover = { git = "https://github.com/starkware-libs/stwo", default-features = false }
+sha2 = "0.10"
+blake3 = "1.5"
+bytes = "1.5"
+thiserror = "1.0"
+num-traits = "0.2"
+
+[dev-dependencies]
+rand = "0.8"
+criterion = "0.5"
+
+[features]
+default = ["std"]
+std = []
