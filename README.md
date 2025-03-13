@@ -2,14 +2,14 @@
 
 <img src="./docs/img/frieda.jpg" alt="FRIEDA Logo" width="200">
 
-**FRI Extended for Data Availability**
+<h2>FRI Extended for Data Availability</h2>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Status: Experimental](https://img.shields.io/badge/Status-Experimental-yellow.svg)](https://github.com/AbdelStark/frieda)
 [![CI](https://github.com/AbdelStark/frieda/actions/workflows/rust.yml/badge.svg)](https://github.com/AbdelStark/frieda/actions/workflows/rust.yml)
 [![Code Coverage](https://codecov.io/gh/AbdelStark/frieda/branch/main/graph/badge.svg)](https://codecov.io/gh/AbdelStark/frieda)
 
-A Rust implementation of data availability sampling using Fast Reed-Solomon Interactive Oracle Proofs (FRI) as described in the [FRIDA paper](https://eprint.iacr.org/2024/248).
+A Rust implementation of data availability sampling using Fast Reed-Solomon Interactive Oracle Proofs (FRI), inspired by the [FRIDA paper](https://eprint.iacr.org/2024/248).
 
 ## Overview
 
@@ -73,12 +73,12 @@ let is_available = verify(&commitment, &proof)?;
 
 The FRIDA scheme has distinct advantages over other approaches:
 
-| Scheme            | Overhead    | Trusted Setup | Limitations                                 |
-| ----------------- | ----------- | ------------- | ------------------------------------------- |
-| KZG-based         | O(log n)    | Required      | Limited polynomial degree, setup complexity |
-| Merkle-based      | O(n)        | Not required  | Linear sampling overhead                    |
-| Tensor codes      | O(√n log n) | Not required  | Limited to two-dimensional construction     |
-| FRIDA (FRI-based) | O(log² n)   | Not required  | More complex protocol                       |
+| Scheme            | Overhead    | Trusted Setup | Limitations                                                       |
+| ----------------- | ----------- | ------------- | ----------------------------------------------------------------- |
+| KZG-based         | O(log n)    | Required      | Limited polynomial degree, setup complexity                       |
+| Merkle-based      | O(n)        | Not required  | Linear sampling overhead, not friendly commitments for ZK rollups |
+| Tensor codes      | O(√n log n) | Not required  | Limited to two-dimensional construction                           |
+| FRIDA (FRI-based) | O(log² n)   | Not required  | More complex protocol                                             |
 
 ## Running the Code
 
@@ -114,10 +114,10 @@ cargo bench --bench lib
 
 ## Repository Structure
 
-```
+```text
 frieda/
 ├── benches/          # Criterion benchmark suites
-│   ├── lib.rs        # High-level API benchmarks 
+│   ├── lib.rs        # High-level API benchmarks
 │   ├── field_and_poly.rs # Field and polynomial ops benchmarks
 │   └── fri.rs        # FRI protocol benchmarks
 ├── .github/
@@ -155,6 +155,13 @@ MIT License - Copyright (c) 2024 [AbdelStark](https://github.com/AbdelStark)
 
 ## References
 
-1. Hall-Andersen, M., Simkin, M., & Wagner, B. (2024). "FRIDA: Data Availability Sampling from FRI." *IACR Cryptology ePrint Archive*, 2024/248.
-2. Ben-Sasson, E., Bentov, I., Horesh, Y., & Riabzev, M. (2018). "Fast Reed-Solomon Interactive Oracle Proofs of Proximity." *Electronic Colloquium on Computational Complexity*, Report No. 134.
-3. Hall-Andersen, M., Simkin, M., & Wagner, B. (2023). "Foundations of Data Availability Sampling." *IACR Cryptology ePrint Archive*, 2023/1079.
+1. Hall-Andersen, M., Simkin, M., & Wagner, B. (2024). ["FRIDA: Data Availability Sampling from FRI."](https://eprint.iacr.org/2024/248) _IACR Cryptology ePrint Archive_, 2024/248.
+2. Ben-Sasson, E., Bentov, I., Horesh, Y., & Riabzev, M. (2018). ["Fast Reed-Solomon Interactive Oracle Proofs of Proximity."](https://drops.dagstuhl.de/storage/00lipics/lipics-vol107-icalp2018/LIPIcs.ICALP.2018.14/LIPIcs.ICALP.2018.14.pdf) _Electronic Colloquium on Computational Complexity_, Report No. 134.
+3. Hall-Andersen, M., Simkin, M., & Wagner, B. (2023). ["Foundations of Data Availability Sampling."](https://eprint.iacr.org/2023/1079) _IACR Cryptology ePrint Archive_, 2023/1079.
+
+## Resources
+
+- [STARK paper](https://eprint.iacr.org/2018/046.pdf)
+- [Circle STARK paper](https://eprint.iacr.org/2024/278)
+- [STWO prover repo](https://github.com/starkware-libs/stwo)
+- [How to do Circle STARK math in Bitcoin?](https://hackmd.io/@l2iterative/SyOrddd9C)
