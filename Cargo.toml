@@ -9,7 +9,7 @@ keywords = ["cryptography", "data-availability", "fri", "erasure-coding"]
 categories = ["cryptography", "algorithms", "no-std"]
 
 [dependencies]
-stwo-prover = { git = "https://github.com/starkware-libs/stwo", default-features = false }
+stwo-prover = { git = "https://github.com/starkware-libs/stwo", rev = "a2e25c96e553de8faaa32dc5a8bb2e5a34d40c20", default-features = false }
 sha2 = "0.10"
 blake3 = "1.5"
 bytes = "1.5"
