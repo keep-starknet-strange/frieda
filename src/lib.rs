@@ -16,48 +16,19 @@ use thiserror::Error;
 pub use stwo_prover::core::fields::m31::M31;
 
 // Define library modules
-pub mod da;
-pub mod field;
-pub mod fri;
-pub mod polynomial;
-pub mod sampling;
-pub mod utils;
+pub mod commit;
+pub mod proof;
+mod utils;
 
 /// Error types for the FRIEDA library
-#[derive(Error, Debug)]
+#[derive(Debug)]
 pub enum FriedaError {
     /// Input validation error
-    #[error("Invalid input: {0}")]
-    InvalidInput(String),
-
-    /// Verification error
-    #[error("Verification failed: {0}")]
-    VerificationFailed(String),
-
-    /// Encoding error
-    #[error("Encoding error: {0}")]
-    EncodingError(String),
-
-    /// Decoding error
-    #[error("Decoding error: {0}")]
-    DecodingError(String),
-
-    /// Merkle tree error
-    #[error("Merkle tree error: {0}")]
-    MerkleTreeError(String),
+    SomeError,
 }
 
 /// Result type for FRIEDA operations
 pub type Result<T> = std::result::Result<T, FriedaError>;
-
-/// A commitment to data using the FRI protocol
-#[derive(Debug, Clone)]
-pub struct Commitment {
-    // The root of the Merkle tree for the base layer
-    pub root: [u8; 32],
-    // The commitment metadata
-    pub metadata: CommitmentMetadata,
-}
 
 /// Metadata for a commitment
 #[derive(Debug, Clone)]
@@ -70,15 +41,6 @@ pub struct CommitmentMetadata {
     pub batch_size: usize,
     // Field size in bits
     pub field_size: usize,
-}
-
-/// A FRI proof for data availability
-#[derive(Debug, Clone)]
-pub struct FriProof {
-    // The query phase information
-    pub query_info: Vec<QueryInfo>,
-    // The final layer
-    pub final_layer: Vec<M31>,
 }
 
 /// Information for a single query in the FRI protocol
@@ -105,26 +67,32 @@ pub struct SampleResult {
 
 /// Core public API for FRIEDA
 pub mod api {
+    use stwo_prover::core::{fri::FriProof, vcs::blake2_merkle::Blake2sMerkleHasher};
+
+    use crate::commit::Commitment;
+
     use super::*;
 
     /// Commit to data using FRI protocol
-    pub fn commit(data: &[u8]) -> Result<Commitment> {
-        da::commit(data)
+    pub fn commit(data: &[u8]) -> Commitment {
+        commit::commit(data)
     }
 
     /// Generate a FRI proof for committed data
-    pub fn generate_proof(commitment: &Commitment) -> Result<FriProof> {
-        da::generate_proof(commitment)
+    pub fn generate_proof(data: &[u8]) -> FriProof<Blake2sMerkleHasher> {
+        proof::generate_proof(data)
     }
 
     /// Verify a FRI proof against a commitment
-    pub fn verify(commitment: &Commitment, proof: &FriProof) -> Result<bool> {
-        da::verify(commitment, proof)
+    pub fn verify(commitment: &Commitment, proof: &FriProof<Blake2sMerkleHasher>) -> Result<bool> {
+        // da::verify(commitment, proof)
+        todo!()
     }
 
     /// Sample data availability using a commitment
     pub fn sample(commitment: &Commitment) -> Result<SampleResult> {
-        sampling::sample(commitment)
+        // sampling::sample(commitment)
+        todo!()
     }
 }
 
@@ -139,7 +107,7 @@ mod tests {
             b"Hello, world! This is a test of the FRI-based data availability sampling scheme.";
 
         // Commit to the data
-        let commitment = api::commit(data).unwrap();
+        let commitment = api::commit(data);
 
         // Sample the commitment
         let sample_result = api::sample(&commitment).unwrap();
@@ -166,8 +134,8 @@ mod tests {
         let original_data = b"This is the original data that needs to be made available.";
 
         // Step 2: Data provider commits to the data
-        let commitment = api::commit(original_data).unwrap();
-        println!("Commitment created with root: {:?}", commitment.root);
+        let commitment = api::commit(original_data);
+        println!("Commitment created with root: {:?}", commitment);
 
         // Step 3: Data provider publishes the commitment
         // (In a real system, this would be published to a blockchain or broadcast)
