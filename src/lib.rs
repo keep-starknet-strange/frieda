@@ -15,6 +15,8 @@ pub use stwo_prover::core::fields::m31::M31;
 
 // Define library modules
 pub mod commit;
+pub mod proof;
+pub mod sample;
 mod utils;
 
 /// Error types for the FRIEDA library
@@ -76,9 +78,8 @@ pub mod api {
     }
 
     /// Generate a FRI proof for committed data
-    pub fn generate_proof(_data: &[u8]) -> FriProof<Blake2sMerkleHasher> {
-        // proof::generate_proof(data)
-        todo!()
+    pub fn generate_proof(data: &[u8]) -> FriProof<Blake2sMerkleHasher> {
+        proof::generate_proof(data)
     }
 
     /// Verify a FRI proof against a commitment
