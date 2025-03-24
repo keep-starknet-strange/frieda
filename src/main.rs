@@ -15,13 +15,10 @@ fn main() -> frieda::Result<()> {
     // Step 2: Commit to the data
     println!("\n⚙️  Committing data using FRI...");
     let timer = Instant::now();
-    let commitment = commit(&data)?;
+    let commitment = commit(&data);
     let commit_time = timer.elapsed();
     println!("   Commitment created in {:?}", commit_time);
-    println!(
-        "   Commitment root: {:?}",
-        hex_encode(&commitment.root[..8])
-    );
+    println!("   Commitment root: {:?}", hex_encode(&commitment));
 
     // Step 3: Light client wants to verify data availability
     println!("\n⚙️  Light client initiating data availability sampling...");
@@ -47,7 +44,7 @@ fn main() -> frieda::Result<()> {
 
     // This would generate a real proof in a full implementation
     // For this demo, we'll just show the placeholder message
-    let _proof_result = generate_proof(&commitment);
+    let _proof_result = generate_proof(&data);
     println!("   Proof would include Merkle paths and consistency proofs for each query");
 
     // Step 6: A more robust demo would verify the proof

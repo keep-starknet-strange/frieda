@@ -17,7 +17,7 @@ fn bench_sample(c: &mut Criterion) {
     for size in [1024, 4096, 16384].iter() {
         group.bench_with_input(BenchmarkId::from_parameter(size), size, |b, &size| {
             let data = vec![0u8; size];
-            let commitment = commit(&data).unwrap();
+            let commitment = commit(&data);
             b.iter(|| sample(black_box(&commitment)))
         });
     }
