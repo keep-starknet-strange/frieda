@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use frieda::api::{commit, sample};
+use frieda::api::commit;
 
 fn bench_commit(c: &mut Criterion) {
     let mut group = c.benchmark_group("commit");
@@ -11,6 +11,5 @@ fn bench_commit(c: &mut Criterion) {
     }
     group.finish();
 }
-
 criterion_group!(benches, bench_commit);
 criterion_main!(benches);

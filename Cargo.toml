@@ -19,8 +19,14 @@ rand = "0.8"
 criterion = { version = "0.5", features = ["html_reports"] }
 
 [[bench]]
-name = "lib"
+name = "commit"
 harness = false
+path = "benches/commit.rs"
+
+[[bench]]
+name = "proof"
+harness = false
+path = "benches/proof.rs"
 
 [features]
 default = ["std"]
