@@ -4,9 +4,9 @@ use frieda::api::commit;
 fn bench_commit(c: &mut Criterion) {
     let mut group = c.benchmark_group("commit");
     for size in [1024, 4096, 16384, 65536].iter() {
-        group.bench_with_input(BenchmarkId::from_parameter(size), size, |b, &size| {
-            let data = vec![0u8; size];
-            b.iter(|| commit(black_box(&data)))
+        let data: Vec<u8> = (0..*size).map(|i| (i % 256) as u8).collect();
+        group.bench_with_input(BenchmarkId::from_parameter(size), &data, |b, data| {
+            b.iter(|| commit(black_box(data)))
         });
     }
     group.finish();
