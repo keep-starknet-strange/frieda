@@ -66,9 +66,8 @@ pub struct SampleResult {
 
 /// Core public API for FRIEDA
 pub mod api {
-    use stwo_prover::core::{fri::FriProof, vcs::blake2_merkle::Blake2sMerkleHasher};
 
-    use crate::commit::Commitment;
+    use crate::{commit::Commitment, proof::Proof};
 
     use super::*;
 
@@ -78,15 +77,12 @@ pub mod api {
     }
 
     /// Generate a FRI proof for committed data
-    pub fn generate_proof(data: &[u8]) -> FriProof<Blake2sMerkleHasher> {
+    pub fn generate_proof(data: &[u8]) -> Proof {
         proof::generate_proof(data)
     }
 
     /// Verify a FRI proof against a commitment
-    pub fn verify(
-        _commitment: &Commitment,
-        _proof: &FriProof<Blake2sMerkleHasher>,
-    ) -> Result<bool> {
+    pub fn verify(_commitment: &Commitment, _proof: &Proof) -> Result<bool> {
         // da::verify(commitment, proof)
         todo!()
     }
