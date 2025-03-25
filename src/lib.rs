@@ -82,9 +82,8 @@ pub mod api {
     }
 
     /// Verify a FRI proof against a commitment
-    pub fn verify(_commitment: &Commitment, _proof: &Proof) -> Result<bool> {
-        // da::verify(commitment, proof)
-        todo!()
+    pub fn verify(proof: Proof) -> bool {
+        proof::verify_proof(proof)
     }
 
     /// Sample data availability using a commitment
@@ -150,12 +149,12 @@ mod tests {
 
         // Step 6: Data provider generates proofs for the requested samples
         // Note: generate_proof is not fully implemented, so this would fail
-        // let proof = api::generate_proof(&commitment).unwrap();
+        let proof = api::generate_proof(original_data);
 
         // Step 7: Light client verifies the proofs
         // Note: verify is not fully implemented with real proofs
-        // let verification_result = api::verify(&commitment, &proof).unwrap();
-        // assert!(verification_result);
+        let verification_result = api::verify(proof);
+        assert!(verification_result);
 
         // Step 8: Light client concludes that data is available
         // In this demo, we just check that sampling works
