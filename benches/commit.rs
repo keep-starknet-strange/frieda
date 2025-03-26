@@ -3,9 +3,13 @@ use frieda::api::commit;
 
 fn bench_commit(c: &mut Criterion) {
     let mut group = c.benchmark_group("commit");
-    for size in [1024, 4096, 16384, 65536].iter() {
-        let data: Vec<u8> = (0..*size).map(|i| (i % 256) as u8).collect();
-        group.bench_with_input(BenchmarkId::from_parameter(size), &data, |b, data| {
+    let mut datas = [1024, 4096, 16384, 65536]
+        .iter()
+        .map(|size| (0..*size).map(|i| (i % 256) as u8).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    datas.push(include_bytes!("../blob").to_vec());
+    for data in datas {
+        group.bench_with_input(BenchmarkId::from_parameter(data.len()), &data, |b, data| {
             b.iter(|| commit(black_box(data)))
         });
     }
