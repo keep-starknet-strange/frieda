@@ -10,7 +10,7 @@ fn bench_commit(c: &mut Criterion) {
     datas.push(include_bytes!("../blob").to_vec());
     for data in datas {
         group.bench_with_input(BenchmarkId::from_parameter(data.len()), &data, |b, data| {
-            b.iter(|| commit(black_box(data)))
+            b.iter(|| commit(black_box(data), black_box(4)))
         });
     }
     group.finish();

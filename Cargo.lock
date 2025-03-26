@@ -428,6 +428,7 @@ version = "0.1.0"
 dependencies = [
  "bitvec",
  "criterion",
+ "serde",
  "stwo-prover",
 ]
 
