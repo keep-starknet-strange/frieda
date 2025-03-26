@@ -32,14 +32,17 @@ pub const FRI_CONFIG: FriConfig = FriConfig {
 };
 pub const POW_BITS: u32 = 20;
 
-pub fn generate_proof(data: &[u8]) -> Proof {
-    commit_and_generate_proof(data).1
+pub fn generate_proof(data: &[u8], seed: Option<u64>) -> Proof {
+    commit_and_generate_proof(data, seed).1
 }
 
-pub fn commit_and_generate_proof(data: &[u8]) -> (Commitment, Proof) {
+pub fn commit_and_generate_proof(data: &[u8], seed: Option<u64>) -> (Commitment, Proof) {
     // Parse bytes to field elements.
     let mut coefficients = utils::bytes_to_felt_le(data);
     let channel = &mut Blake2sChannel::default();
+    if let Some(seed) = seed {
+        channel.mix_u64(seed);
+    }
     // The polynomial should have 2**n coefficients.
     let log_next_pow_of_2 = (coefficients.len() as f64).log2().ceil() as u32;
     // Pad with 0s
@@ -82,8 +85,11 @@ pub fn commit_and_generate_proof(data: &[u8]) -> (Commitment, Proof) {
     )
 }
 
-pub fn verify_proof(proof: Proof) -> bool {
+pub fn verify_proof(proof: Proof, seed: Option<u64>) -> bool {
     let channel = &mut Blake2sChannel::default();
+    if let Some(seed) = seed {
+        channel.mix_u64(seed);
+    }
     let Ok(mut fri_verifier) = FriVerifier::<Blake2sMerkleChannel>::commit(
         channel,
         FRI_CONFIG,
@@ -112,61 +118,73 @@ mod tests {
     #[test]
     fn test_generate_proof() {
         let data = include_bytes!("../blob");
-        let proof = generate_proof(data);
+        let proof = generate_proof(data, None);
         assert_ne!(proof.proof.inner_layers.len(), 0);
     }
 
     #[test]
     fn test_commit_and_generate_proof() {
         let data = include_bytes!("../blob");
-        let (commitment, proof) = commit_and_generate_proof(data);
+        let (commitment, proof) = commit_and_generate_proof(data, None);
         assert_eq!(commitment, commit(data));
         assert_eq!(proof.proof.first_layer.commitment.0, commitment);
     }
     #[test]
     fn test_verify_proof() {
         let data = include_bytes!("../blob");
-        let proof = generate_proof(data);
-        assert!(verify_proof(proof));
+        let proof = generate_proof(data, None);
+        assert!(verify_proof(proof, None));
     }
 
     #[test]
     fn test_verify_proof_with_invalid_pow() {
         let data = include_bytes!("../blob");
-        let mut proof = generate_proof(data);
+        let mut proof = generate_proof(data, None);
         proof.proof_of_work += 1;
-        assert!(!verify_proof(proof));
+        assert!(!verify_proof(proof, None));
     }
 
     #[test]
     fn test_verify_proof_with_invalid_evaluations() {
         let data = include_bytes!("../blob");
-        let mut proof = generate_proof(data);
+        let mut proof = generate_proof(data, None);
         proof.evaluations[0] += QM31::from_u32_unchecked(1, 1, 1, 1);
-        assert!(!verify_proof(proof));
+        assert!(!verify_proof(proof, None));
     }
     #[test]
     fn test_verify_proof_with_invalid_evaluations_order() {
         let data = include_bytes!("../blob");
-        let mut proof = generate_proof(data);
+        let mut proof = generate_proof(data, None);
         proof.evaluations.reverse();
-        assert!(!verify_proof(proof));
+        assert!(!verify_proof(proof, None));
     }
 
     #[test]
     #[should_panic]
     fn test_verify_proof_with_invalid_evaluations_length() {
         let data = include_bytes!("../blob");
-        let mut proof = generate_proof(data);
+        let mut proof = generate_proof(data, None);
         proof.evaluations.pop();
-        assert!(!verify_proof(proof));
+        assert!(!verify_proof(proof, None));
     }
 
     #[test]
     fn test_verify_proof_with_invalid_1_evaluation_unordered() {
         let data = include_bytes!("../blob");
-        let mut proof = generate_proof(data);
+        let mut proof = generate_proof(data, None);
         proof.evaluations.swap(0, 1);
-        assert!(!verify_proof(proof));
+        assert!(!verify_proof(proof, None));
+    }
+
+    #[test]
+    fn test_verify_proof_with_seed() {
+        let data = include_bytes!("../blob");
+        let proof = generate_proof(data, Some(1));
+        let proof2 = generate_proof(data, Some(2));
+        assert_ne!(proof.evaluations, proof2.evaluations);
+        assert!(verify_proof(proof.clone(), Some(1)));
+        assert!(verify_proof(proof2.clone(), Some(2)));
+        assert!(!verify_proof(proof.clone(), Some(2)));
+        assert!(!verify_proof(proof2.clone(), Some(1)));
     }
 }
