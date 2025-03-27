@@ -3,14 +3,11 @@ use stwo_prover::core::{
     backend::CpuBackend,
     channel::{Blake2sChannel, Channel},
     circle::Coset,
-    fields::{
-        m31::BaseField,
-        qm31::{SecureField, QM31},
-    },
+    fields::qm31::QM31,
     fri::{CirclePolyDegreeBound, FriProof, FriProver, FriVerifier},
     pcs::PcsConfig,
     poly::{
-        circle::{CircleDomain, CircleEvaluation, CirclePoly, PolyOps, SecureEvaluation},
+        circle::{CircleDomain, PolyOps, SecureEvaluation},
         BitReversedOrder,
     },
     proof_of_work::GrindOps,
@@ -38,27 +35,19 @@ pub fn commit_and_generate_proof(
     pcs_config: PcsConfig,
 ) -> (Commitment, Proof) {
     // Parse bytes to field elements.
-    let mut coefficients = utils::bytes_to_felt_le(data);
+    let polynomial = utils::polynomial_from_bytes(data);
     let channel = &mut Blake2sChannel::default();
     if let Some(seed) = seed {
         channel.mix_u64(seed);
     }
-    // The polynomial should have 2**n coefficients.
-    let log_next_pow_of_2 = (coefficients.len() as f64).log2().ceil() as u32;
-    // Pad with 0s
-    coefficients.resize(1 << log_next_pow_of_2, BaseField::from_u32_unchecked(0));
-    let polynomial = CirclePoly::<CpuBackend>::new(coefficients.clone());
+
     let coset =
         Coset::half_odds(polynomial.log_size() + pcs_config.fri_config.log_blowup_factor - 1);
     let domain = CircleDomain::new(coset);
     let twiddles = CpuBackend::precompute_twiddles(coset);
-    let evaluations: CircleEvaluation<CpuBackend, BaseField, BitReversedOrder> =
+    let evaluations: SecureEvaluation<CpuBackend, BitReversedOrder> =
         polynomial.evaluate_with_twiddles(domain, &twiddles);
-    let secure_evaluations: [SecureEvaluation<CpuBackend, BitReversedOrder>; 1] =
-        [SecureEvaluation::<CpuBackend, BitReversedOrder>::new(
-            domain,
-            evaluations.into_iter().map(SecureField::from).collect(),
-        )];
+    let secure_evaluations: [SecureEvaluation<CpuBackend, BitReversedOrder>; 1] = [evaluations];
 
     let fri_prover = FriProver::<CpuBackend, Blake2sMerkleChannel>::commit(
         channel,
@@ -81,7 +70,7 @@ pub fn commit_and_generate_proof(
             proof,
             proof_of_work,
             pcs_config,
-            log_size_bound: log_next_pow_of_2,
+            log_size_bound: polynomial.log_size(),
             evaluations,
         },
     )

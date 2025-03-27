@@ -1,5 +1,9 @@
 use bitvec::{field::BitField, order::Lsb0, vec::BitVec};
-use stwo_prover::core::fields::m31::BaseField;
+use stwo_prover::core::{
+    backend::CpuBackend,
+    fields::m31::BaseField,
+    poly::circle::{CirclePoly, SecureCirclePoly},
+};
 
 /// Convert a byte slice to a vector of BaseField elements, where each element is the
 /// a felt containing the bytes. A felt can be up to 2**31 - 1
@@ -13,6 +17,21 @@ pub fn bytes_to_felt_le(data: &[u8]) -> Vec<BaseField> {
         })
         .collect()
 }
+
+pub fn polynomial_from_bytes(data: &[u8]) -> SecureCirclePoly<CpuBackend> {
+    let mut coefficients = bytes_to_felt_le(data);
+    let next_power_of_2 = 1 << ((coefficients.len() as f64).log2().ceil() as u32).max(2);
+    coefficients.resize(next_power_of_2, BaseField::from(0));
+    SecureCirclePoly(
+        coefficients
+            .chunks(coefficients.len() / 4)
+            .map(|chunk| CirclePoly::<CpuBackend>::new(chunk.to_vec()))
+            .collect::<Vec<CirclePoly<CpuBackend>>>()
+            .try_into()
+            .unwrap(),
+    )
+}
+
 #[cfg(test)]
 mod tests {
 
