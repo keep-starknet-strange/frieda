@@ -1,9 +1,9 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use frieda::proof::{commit_and_generate_proof, generate_proof, verify_proof};
-use stwo_prover::core::pcs::PcsConfig;
+use stwo_prover::core::{fri::FriConfig, pcs::PcsConfig};
 
 const PCS_CONFIG: PcsConfig = PcsConfig {
-    fri_config: stwo_prover::core::fri::FriConfig {
+    fri_config: FriConfig {
         log_blowup_factor: 4,
         log_last_layer_degree_bound: 0,
         n_queries: 20,
