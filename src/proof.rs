@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
+pub use stwo_prover::core::fri::FriConfig;
+pub use stwo_prover::core::pcs::PcsConfig;
 use stwo_prover::core::{
     backend::CpuBackend,
     channel::{Blake2sChannel, Channel},
     circle::Coset,
     fields::qm31::QM31,
     fri::{CirclePolyDegreeBound, FriProof, FriProver, FriVerifier},
-    pcs::PcsConfig,
     poly::{
         circle::{CircleDomain, PolyOps, SecureEvaluation},
         BitReversedOrder,
