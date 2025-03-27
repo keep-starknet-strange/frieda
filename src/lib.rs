@@ -16,6 +16,7 @@ pub use stwo_prover::core::fields::m31::M31;
 // Define library modules
 pub mod commit;
 pub mod proof;
+pub mod reconstruct;
 mod utils;
 
 /// Core public API for FRIEDA

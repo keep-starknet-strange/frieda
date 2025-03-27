@@ -1,4 +1,4 @@
-use bitvec::{field::BitField, order::Lsb0, vec::BitVec};
+use bitvec::{bitarr, field::BitField, order::Lsb0, vec::BitVec};
 use stwo_prover::core::fields::m31::BaseField;
 
 /// Convert a byte slice to a vector of BaseField elements, where each element is the
@@ -13,6 +13,17 @@ pub fn bytes_to_felt_le(data: &[u8]) -> Vec<BaseField> {
         })
         .collect()
 }
+
+pub fn felts_to_bytes_le(felts: &[BaseField]) -> Vec<u8> {
+    let mut bitvec = BitVec::<u8, Lsb0>::new();
+    for felt in felts {
+        let mut temp_bitvec = bitarr![u8, Lsb0; 0; 32];
+        temp_bitvec.store(felt.0);
+        bitvec.extend_from_bitslice(&temp_bitvec[..30]);
+    }
+    bitvec.as_raw_slice().to_vec()
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -44,5 +55,14 @@ mod tests {
             // when converted to bytes it gets padded with 4 0s to reach 64 bits (8 bytes)
             assert_eq!(felt[2], BaseField::from(0));
         }
+    }
+
+    #[test]
+    fn test_round_trip() {
+        let mut data = include_bytes!("../blob").to_vec();
+        let felts = bytes_to_felt_le(&data);
+        let bytes = felts_to_bytes_le(&felts);
+        data.resize(bytes.len(), 0);
+        assert_eq!(data, bytes);
     }
 }
