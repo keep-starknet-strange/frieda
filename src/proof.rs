@@ -39,36 +39,23 @@ pub fn commit_and_generate_proof(
     pcs_config: PcsConfig,
 ) -> (Commitment, Proof) {
     // Parse bytes to field elements.
-    let mut coefficients = utils::bytes_to_felt_le(data);
+    let polynomial = utils::polynomial_from_bytes(data);
 
     let channel = &mut Blake2sChannel::default();
     if let Some(seed) = seed {
         channel.mix_u64(seed);
     }
-    // The polynomial should have 2**n coefficients.
-    let log_next_pow_of_2 = (coefficients.len() as f64).log2().ceil() as u32;
-    // Pad with 0s
-    coefficients.resize(1 << log_next_pow_of_2, BaseField::from_u32_unchecked(0));
-    if Some(1) == seed {
-        println!("coefficients len {}", coefficients.len());
-        println!("coefficients {:?}", coefficients[0..10].to_vec());
-        println!(
-            "coefficients {:?}",
-            coefficients[coefficients.len() - 10..].to_vec()
-        );
-    }
-    let polynomial = CirclePoly::<CpuBackend>::new(coefficients.clone());
+
     let coset_log_size = polynomial.log_size() + pcs_config.fri_config.log_blowup_factor - 1;
     let coset = Coset::half_odds(coset_log_size);
     let domain = CircleDomain::new(coset);
     let twiddles = CpuBackend::precompute_twiddles(coset);
-    let evaluations: CircleEvaluation<CpuBackend, BaseField, BitReversedOrder> =
+    let evaluations: SecureEvaluation<CpuBackend, BitReversedOrder> =
         polynomial.evaluate_with_twiddles(domain, &twiddles);
-    let secure_evaluations: [SecureEvaluation<CpuBackend, BitReversedOrder>; 1] =
-        [SecureEvaluation::<CpuBackend, BitReversedOrder>::new(
-            domain,
-            evaluations.into_iter().map(SecureField::from).collect(),
-        )];
+    let secure_evaluations = [SecureEvaluation::<CpuBackend, BitReversedOrder>::new(
+        domain,
+        evaluations.into_iter().collect(),
+    ); 1];
 
     let fri_prover = FriProver::<CpuBackend, Blake2sMerkleChannel>::commit(
         channel,
@@ -81,6 +68,7 @@ pub fn commit_and_generate_proof(
     let (proof, queries) = fri_prover.decommit(channel);
     assert!(queries.keys().len() == 1);
     let queries = queries.values().next().unwrap();
+
     let evaluations = queries
         .iter()
         .map(|i| secure_evaluations[0].at(*i))
@@ -91,7 +79,7 @@ pub fn commit_and_generate_proof(
             proof,
             proof_of_work,
             pcs_config,
-            log_size_bound: log_next_pow_of_2,
+            log_size_bound: polynomial.log_size(),
             evaluations,
             coset_log_size,
         },
@@ -116,17 +104,14 @@ pub fn verify_proof(proof: Proof, seed: Option<u64>) -> bool {
         return false;
     }
     let queries = fri_verifier.sample_query_positions(channel);
+    println!("verify queries {:?}", queries);
     assert!(queries.keys().len() == 1);
     fri_verifier
-        .decommit(vec![proof
-            .evaluations
-            .into_iter()
-            .map(SecureField::from)
-            .collect()])
+        .decommit(vec![proof.evaluations.into_iter().collect()])
         .is_ok()
 }
 
-pub fn get_queries_from_proof(proof: Proof, seed: Option<u64>) -> Vec<usize> {
+pub fn get_queries_from_proof(proof: Proof, seed: Option<u64>) -> (u32, Vec<usize>) {
     let channel = &mut Blake2sChannel::default();
     if let Some(seed) = seed {
         channel.mix_u64(seed);
@@ -137,14 +122,14 @@ pub fn get_queries_from_proof(proof: Proof, seed: Option<u64>) -> Vec<usize> {
         proof.proof,
         vec![CirclePolyDegreeBound::new(proof.log_size_bound)],
     ) else {
-        return vec![];
+        panic!("Failed to commit");
     };
     channel.mix_u64(proof.proof_of_work);
     if channel.trailing_zeros() < proof.pcs_config.pow_bits {
-        return vec![];
+        panic!("Proof of work is invalid");
     }
     let queries = fri_verifier.sample_query_positions(channel);
-    queries.values().next().unwrap().to_vec()
+    queries.into_iter().next().unwrap()
 }
 
 #[cfg(test)]

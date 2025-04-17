@@ -9,7 +9,7 @@ keywords = ["cryptography", "data-availability", "fri", "erasure-coding"]
 categories = ["cryptography", "algorithms", "no-std"]
 
 [dependencies]
-stwo-prover = { git = "https://github.com/starkware-libs/stwo", rev = "19d12d7", default-features = false }
+stwo-prover = { path = "../stwo/crates/prover", default-features = false }
 bitvec = "1.0.1"
 serde = { version = "1.0.219", features = ["derive"] }
 
