@@ -8,14 +8,13 @@
 //! mechanisms that allow light clients to verify data availability without
 //! downloading the entire dataset.
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 /// Re-export of stwo-prover's M31 field for arithmetic operations
 pub use stwo_prover::core::fields::m31::M31;
 
 // Define library modules
 pub mod commit;
 pub mod proof;
+pub mod reconstruct;
 mod utils;
 
 /// Core public API for FRIEDA
@@ -40,6 +39,16 @@ pub mod api {
     /// Verify a FRI proof against a commitment
     pub fn verify(proof: Proof, seed: Option<u64>) -> bool {
         proof::verify_proof(proof, seed)
+    }
+
+    /// Reconstruct the original data from a list of proofs
+    pub fn reconstruct(proofs: Vec<Proof>) -> Vec<u8> {
+        let poly_size = 1 << proofs[0].log_size_bound;
+        let evals = proofs
+            .into_iter()
+            .flat_map(|p| p.evaluations)
+            .collect::<Vec<_>>();
+        reconstruct::fast_circle_interpolation(&[], &evals).unwrap()
     }
 }
 

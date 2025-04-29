@@ -9,7 +9,9 @@ keywords = ["cryptography", "data-availability", "fri", "erasure-coding"]
 categories = ["cryptography", "algorithms", "no-std"]
 
 [dependencies]
-stwo-prover = { git = "https://github.com/starkware-libs/stwo", rev = "19d12d7", default-features = false }
+stwo-prover = { git = "https://github.com/starkware-libs/stwo", branch = "dev", features = [
+    "rayon",
+] }
 bitvec = "1.0.1"
 serde = { version = "1.0.219", features = ["derive"] }
 
@@ -25,7 +27,3 @@ path = "benches/commit.rs"
 name = "proof"
 harness = false
 path = "benches/proof.rs"
-
-[features]
-default = ["std"]
-std = []

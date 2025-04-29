@@ -895,7 +895,7 @@ dependencies = [
 [[package]]
 name = "stwo-prover"
 version = "0.1.1"
-source = "git+https://github.com/starkware-libs/stwo?rev=19d12d7#19d12d700b65b4d9ae45dcca82ee24ea00976542"
+source = "git+https://github.com/starkware-libs/stwo?branch=dev#61d1f6bf6d2913e6951b837526c2ce1f7f661414"
 dependencies = [
  "blake2",
  "blake3",
@@ -906,6 +906,7 @@ dependencies = [
  "itertools 0.12.1",
  "num-traits",
  "rand",
+ "rayon",
  "serde",
  "starknet-crypto",
  "starknet-ff",
