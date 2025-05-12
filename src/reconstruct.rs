@@ -93,13 +93,11 @@ pub fn interpolate_cm31(
 
     let points = Coset::get_coset_points(&coset);
 
-    let f_values = Polynomial::evaluate_fft::<Degree2ExtensionField>(&pol, 1, Some(n)).unwrap();
-    let f_values = f_values
-        .iter()
-        .zip(points)
-        .map(|(val, z)| {
+    let f_values = points
+        .par_iter()
+        .map(|z| {
             let z = FieldElement::<Degree2ExtensionField>::new([z.x, z.y]);
-            ((val + &last_coeff * z.pow(n)) / z.pow(n as u128 / 2)).unwrap()
+            ((pol.evaluate(&z) + &last_coeff * z.pow(n)) / z.pow(n as u128 / 2)).unwrap()
         })
         .collect::<Vec<_>>();
 
@@ -296,6 +294,7 @@ mod tests {
 
     use super::*;
     use crate::{proof::generate_proof, utils};
+
     use stwo_prover::core::{
         circle::Coset as StwoCoset, fri::FriConfig, pcs::PcsConfig, poly::circle::CircleDomain,
         utils::bit_reverse_index,
@@ -308,17 +307,18 @@ mod tests {
         },
         pow_bits: 0,
     };
+
     #[test]
-    fn test_something() {
-        let data = include_bytes!("../blob").to_vec();
-        let poly = utils::polynomial_from_bytes(&data);
+    fn test_reconstruction() {
+        let data = include_bytes!("../blob");
+        let poly = utils::polynomial_from_bytes(data);
 
         // we should have polys.len().next_power_of_two() samples
         let samples_nb = (1 << (poly.log_size() + 1)) / PCS_CONFIG.fri_config.n_queries;
         let proofs_pos = (0..=samples_nb)
             .into_par_iter()
             .map(|i| {
-                let proof = generate_proof(&data, Some(i as u64), PCS_CONFIG);
+                let proof = generate_proof(data, Some(i as u64), PCS_CONFIG);
                 let queries = get_queries_from_proof(proof.clone(), Some(i as u64));
                 (proof, queries)
             })
@@ -326,18 +326,19 @@ mod tests {
 
         let domain = CircleDomain::new(StwoCoset::half_odds(proofs_pos[0].0.coset_log_size));
         let mut pos_set = HashSet::new();
-        let mut pos_vec = Vec::new();
-        let mut evals_vec = Vec::new();
+        let mut pos_evals_vec = Vec::new();
+
         for (proof, (_, pos)) in proofs_pos {
             for (i, p) in pos.iter().enumerate() {
-                let point = domain.at(bit_reverse_index(*p, domain.log_size()));
-                if pos_set.insert(point) {
-                    pos_vec.push(point);
-                    evals_vec.push(proof.evaluations[i]);
+                let p = domain.at(bit_reverse_index(*p, domain.log_size()));
+                if pos_set.insert(p) {
+                    pos_evals_vec.push((p, proof.evaluations[i]));
                 }
             }
         }
-        println!("pos_set.len(): {:?}", pos_set.len());
+        pos_evals_vec.sort_by_key(|(p, _)| *p);
+        let pos_vec = pos_evals_vec.iter().map(|(p, _)| *p).collect::<Vec<_>>();
+        let evals_vec = pos_evals_vec.iter().map(|(_, e)| *e).collect::<Vec<_>>();
 
         let pos = pos_vec;
         let evals = evals_vec;
@@ -345,26 +346,9 @@ mod tests {
 
         let interpolated = fast_circle_interpolation(&pos[..evals_nb], &evals[..evals_nb]);
 
-        let interpolated = interpolated.0[0]
-            .coeffs
-            .iter()
-            .zip(interpolated.0[1].coeffs.iter())
-            .zip(interpolated.0[2].coeffs.iter())
-            .zip(interpolated.0[3].coeffs.iter())
-            .flat_map(|(((a, b), c), d)| [a, b, c, d])
-            .collect::<Vec<_>>();
-        let interpolated_bytes = utils::felts_to_bytes_le(&interpolated);
-
-        data.iter()
-            .zip(interpolated_bytes.iter())
-            .enumerate()
-            .for_each(|(i, (a, b))| {
-                if a != b {
-                    println!("failed at {i}");
-                }
-            });
-        println!("interpolated_bytes.len(): {:?}", interpolated_bytes.len());
-        println!("data.len(): {:?}", data.len());
-        assert_eq!(data, interpolated_bytes[..data.len()]);
+        assert_eq!(poly.0[0].coeffs, interpolated.0[0].coeffs);
+        assert_eq!(poly.0[1].coeffs, interpolated.0[1].coeffs);
+        assert_eq!(poly.0[2].coeffs, interpolated.0[2].coeffs);
+        assert_eq!(poly.0[3].coeffs, interpolated.0[3].coeffs);
     }
 }
