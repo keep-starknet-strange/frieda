@@ -4,14 +4,18 @@ version = "0.1.0"
 edition = "2021"
 description = "FRI-based Data Availability sampling library based on the FRIDA paper"
 license = "MIT"
-repository = "https://github.com/AbdelStark/frieda"
+repository = "https://github.com/keep-starknet-strange/frieda"
 keywords = ["cryptography", "data-availability", "fri", "erasure-coding"]
 categories = ["cryptography", "algorithms", "no-std"]
 
 [dependencies]
-stwo-prover = { git = "https://github.com/starkware-libs/stwo", rev = "19d12d7", default-features = false }
+stwo-prover = { git = "https://github.com/starkware-libs/stwo", branch = "dev", features = [
+    "rayon",
+] }
 bitvec = "1.0.1"
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+lambdaworks-math = { git = "https://github.com/0xLucqs/lambdaworks", branch = "feat/fast_division" }
+rayon = "1.10.0"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
@@ -25,7 +29,3 @@ path = "benches/commit.rs"
 name = "proof"
 harness = false
 path = "benches/proof.rs"
-
-[features]
-default = ["std"]
-std = []

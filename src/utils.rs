@@ -32,6 +32,15 @@ pub fn polynomial_from_bytes(data: &[u8]) -> SecureCirclePoly<CpuBackend> {
     )
 }
 
+pub fn felts_to_bytes_le(felts: &[&BaseField]) -> Vec<u8> {
+    let mut result = BitVec::<u8, Lsb0>::new();
+    for felt in felts {
+        let value = felt.0;
+        result.extend_from_bitslice(&BitVec::<u8, Lsb0>::from_slice(&value.to_le_bytes())[0..30]);
+    }
+    result.into_vec()
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -63,5 +72,14 @@ mod tests {
             // when converted to bytes it gets padded with 4 0s to reach 64 bits (8 bytes)
             assert_eq!(felt[2], BaseField::from(0));
         }
+    }
+
+    #[test]
+    fn test_felts_to_bytes_le() {
+        let mut data = include_bytes!("../blob").to_vec();
+        let felts = bytes_to_felt_le(&data);
+        let bytes = felts_to_bytes_le(&felts.iter().collect::<Vec<_>>());
+        data.resize(bytes.len(), 0);
+        assert_eq!(bytes, data);
     }
 }

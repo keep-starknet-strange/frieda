@@ -23,6 +23,8 @@ pub struct Proof {
     pub pcs_config: PcsConfig,
     pub log_size_bound: u32,
     pub evaluations: Vec<QM31>,
+    pub seed: Option<u64>,
+    pub coset_log_size: u32,
 }
 
 pub fn generate_proof(data: &[u8], seed: Option<u64>, pcs_config: PcsConfig) -> Proof {
@@ -72,6 +74,8 @@ pub fn commit_and_generate_proof(
             pcs_config,
             log_size_bound: polynomial.log_size(),
             evaluations,
+            seed,
+            coset_log_size: coset.log_size(),
         },
     )
 }
